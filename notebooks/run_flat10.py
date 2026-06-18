@@ -49,7 +49,7 @@ scenarios
 
 # %%
 n_scen = len(scenarios)
-run_w_variability = False
+run_w_variability = True
 
 # %%
 species = ['CO2', 'CH4', 'N2O']
@@ -169,38 +169,12 @@ initialise(f.cumulative_emissions, 0)
 
 f.run()
 
-# %%
-weights = np.zeros((321, n_scen, 841))
-weights[100, :, :] = 0.5
-weights[101:151, :, :] = 1
-weights[151, :, :] = 0.5
-weights = xr.DataArray(
-    weights, 
-    dims=f.temperature.sel(layer=0).dims, 
-    coords=f.temperature.sel(layer=0).coords
-)
-# output[..., ivolc] = (
-#     f.temperature.sel(layer=0) - f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
-# ).sel(scenario='ssp245', timebounds=np.arange(0, 2102))
-temperature_baseline_0_1900 = (
-    f.temperature.sel(layer=0) - f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
-)
-
-# %%
-weights = np.zeros((321, n_scen, 841))
-weights[254, :, :] = 0.5
-weights[254:274, :, :] = 1
-weights[274, :, :] = 0.5
-weights = xr.DataArray(
-    weights, 
-    dims=f.temperature.sel(layer=0).dims, 
-    coords=f.temperature.sel(layer=0).coords
-)
+baseline_subtract = np.loadtxt('../output/baseline_subtract.txt')
 # output[..., ivolc] = (
 #     f.temperature.sel(layer=0) - f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
 # ).sel(scenario='ssp245', timebounds=np.arange(0, 2102))
 temperature_baseline_2004_2023 = (
-    f.temperature.sel(layer=0) - f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
+    f.temperature.sel(layer=0) - baseline_subtract[0,:]
 ) + 1.05
 
 # %%
@@ -208,10 +182,6 @@ temperature_baseline_2004_2023
 
 # %%
 pl.plot(temperature_baseline_2004_2023.median(dim="config"))
-pl.plot(temperature_baseline_0_1900.median(dim="config"))
-
-# %%
-pl.plot(temperature_baseline_0_1900.median(dim="config"))
 
 # %%
 pl.plot((
@@ -224,14 +194,6 @@ pl.plot(f.forcing_sum.median(dim="config"))
 
 # %%
 pl.plot(f.temperature.sel(layer=0, config=valid_all[0]))
-
-# %%
-(
-    temperature_baseline_0_1900
-).median(dim="config").max(dim="timebounds")
-
-# %%
-pl.plot(temperature_baseline_0_1900.sel(scenario=scenarios[0]));
 
 # %%
 pl.plot(temperature_baseline_2004_2023.sel(scenario=scenarios[0]));

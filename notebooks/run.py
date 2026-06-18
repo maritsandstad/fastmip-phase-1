@@ -75,13 +75,13 @@ volcanic_forcing = np.zeros(752)
 
 # %%
 scenarios_mapping = {
-    #'SSP2 - Low Overshoot_a': 'LN',
-    #'SSP3 - High Emissions': 'H',
+    'SSP2 - Low Overshoot_a': 'LN',
+    'SSP3 - High Emissions': 'H',
     'SSP2 - Medium Emissions': 'M',
-    #'SSP2 - Low Emissions': 'L',
-    #'SSP1 - Very Low Emissions': 'VL',
-    #'SSP5 - Medium-Low Emissions_a': 'HL',
-    #'SSP2 - Medium-Low Emissions': 'ML'
+    'SSP2 - Low Emissions': 'L',
+    'SSP1 - Very Low Emissions': 'VL',
+    'SSP5 - Medium-Low Emissions_a': 'HL',
+    'SSP2 - Medium-Low Emissions': 'ML'
 }
 
 # %%
@@ -812,7 +812,7 @@ temperature_baseline_2004_2023 = (
 
 baseline_subtract = f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
 print(baseline_subtract)
-baseline_subtract.to_dataframe().to_csv('../output/baseline_subtract.csv')
+np.savetxt('../output/baseline_subtract.txt', baseline_subtract)
 
 # %%
 temperature_baseline_2004_2023
