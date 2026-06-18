@@ -75,25 +75,27 @@ volcanic_forcing = np.zeros(752)
 
 # %%
 scenarios_mapping = {
-    'SSP2 - Low Overshoot_a': 'LN',
-    'SSP3 - High Emissions': 'H',
+    #'SSP2 - Low Overshoot_a': 'LN',
+    #'SSP3 - High Emissions': 'H',
     'SSP2 - Medium Emissions': 'M',
-    'SSP2 - Low Emissions': 'L',
-    'SSP1 - Very Low Emissions': 'VL',
-    'SSP5 - Medium-Low Emissions_a': 'HL',
-    'SSP2 - Medium-Low Emissions': 'ML'
+    #'SSP2 - Low Emissions': 'L',
+    #'SSP1 - Very Low Emissions': 'VL',
+    #'SSP5 - Medium-Low Emissions_a': 'HL',
+    #'SSP2 - Medium-Low Emissions': 'ML'
 }
 
 # %%
 volcanic_forcing = df_volcanic["volcanic_erf_rel_1850-2021"].loc[1750:2501].values
 solar_forcing = df_solar["solar_erf_rel_1850-2019"].loc[1750:2501].values
 
+print("Loaded in data, now ready to define the FaIR runs")
+
 # %% [markdown]
 # ## With internal variability
 
 # %%
 f = FAIR(ch4_method="Thornhill2021")
-
+print("Set up the FaIR object, now defining the time and scenarios")
 f.define_time(1750, 2501, 1)
 f.define_scenarios(scenarios)
 
@@ -101,8 +103,9 @@ species, properties = read_properties(
     "../data/fair_parameters_1.6.0/"
     "species_configs_properties.csv",
 )
-
+print("Defined the time and scenarios, now defining the species and properties")
 f.define_species(species, properties)
+print("Defined the species and properties, now reading in the calibrated parameters and defining the configs")
 df_configs = pd.read_csv(
     "../data/fair_parameters_1.6.0/"
     "calibrated_constrained_parameters.csv",
@@ -110,9 +113,12 @@ df_configs = pd.read_csv(
 )
 
 valid_all = df_configs.index
+print(valid_all.shape)
 
+print("Read in the calibrated parameters and defined the configs, now allocating memory for the model runs")
 f.define_configs(valid_all)
 f.allocate()
+print("FaIR is set up, now filling in the emissions and forcing data")
 
 # %%
 for scenario in scenarios:
@@ -157,9 +163,12 @@ initialise(f.temperature, 0)
 initialise(f.cumulative_emissions, 0)
 initialise(f.airborne_emissions, 0)
 
+print("FaIR is set up, now running the model - this will take a few minutes")
+
 # %%
 f.run()
 
+print("Ran FaIR, now doing some post-processing to get the output in the right format")
 # %%
 weights = np.zeros((752, n_scen, 841))
 weights[100, :, :] = 0.5
@@ -800,6 +809,10 @@ weights = xr.DataArray(
 temperature_baseline_2004_2023 = (
     f.temperature.sel(layer=0) - f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
 ) + 1.05
+
+baseline_subtract = f.temperature.sel(layer=0).weighted(weights).mean(dim="timebounds")
+print(baseline_subtract)
+baseline_subtract.to_dataframe().to_csv('../output/baseline_subtract.csv')
 
 # %%
 temperature_baseline_2004_2023
