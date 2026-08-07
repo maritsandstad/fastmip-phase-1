@@ -18,7 +18,6 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as pl
-import xarray as xr
 
 import fair
 from fair import FAIR
@@ -137,7 +136,7 @@ for scenario in scenarios:
             f.emissions.loc[dict(specie="CO2", scenario=scenario, timepoints=np.arange(100.5, 150))] = em_level/10.*np.linspace(9.9, -9.9, 50)[:, None] * 44.009 / 12.011
             f.emissions.loc[dict(specie="CO2", scenario=scenario, timepoints=np.arange(150.5, 320))] = 0
 
-
+f.fill_species_configs()
 
 # %%
 # Climate response
@@ -203,7 +202,7 @@ pl.plot(temperature_baseline_2004_2023.sel(scenario=scenarios[0]));
 
 # %%
 
-def produce_variable_dataframe(variable_name, unit, data_array):
+def produce_variable_dataframe(variable_name, unit, data_array, plot = True):
     mi = []
     for scenario in scenarios:
         for config in valid_all:
@@ -225,7 +224,26 @@ def produce_variable_dataframe(variable_name, unit, data_array):
         # for config in valid_all:
         temp_out_data[:, irow:irow+841] = data_array.sel(scenario=scenario, config=valid_all, timebounds=np.arange(0, 321))
         irow = irow + 841
+    if plot:
+        plot_per_scenario(variable_name, unit, data_array)
     return pd.DataFrame(temp_out_data.T, index=index, columns=np.arange(0, 321))
+
+def plot_per_scenario(variable_name, unit, data_array):
+    fig, axs = pl.subplots(1, 1, figsize=(10, 5))
+    for scenario in scenarios:
+        axs.plot(data_array.sel(scenario=scenario, config=valid_all).median(dim="config"), label=scenario)
+        axs.fill_between(
+            np.arange(0, 321),
+            data_array.sel(scenario=scenario, config=valid_all).quantile(0.05, dim="config"),
+            data_array.sel(scenario=scenario, config=valid_all).quantile(0.95, dim="config"),
+            alpha=0.2
+        )
+    axs.set_title(f"{variable_name} ({unit})")
+    axs.set_xlabel("Time (years)")
+    axs.set_ylabel(f"{variable_name} ({unit})")
+    axs.legend()
+    fig.tight_layout()
+    fig.savefig(f"../output/{variable_name.replace('|', '_').replace(' ', '_')}.png", dpi=300)
     
 # index = pd.MultiIndex.from_product(
 #     [
