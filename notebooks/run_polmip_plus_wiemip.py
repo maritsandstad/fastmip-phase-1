@@ -26,8 +26,8 @@ from fair.io import read_properties
 
 # %%
 # historical = pd.read_csv('../data/emissions/historical_emissions_1750-2023_cmip7.csv')
-run_choice = "WIEMIP"
-run_w_variability = True
+run_choice = "PolMIP"
+run_w_variability = False
 
 startyear = 1750
 endyear = 2501
@@ -41,11 +41,11 @@ endyear = 2501
 # emitted_species = list(historical.variable.values)
 polmip_wiemip_dict ={
     "PolMIP": {
-        "em_file" : "../data/emissions/emissions_1750-2500_vlcf-ctap_test.csv",
+        "em_file" : "../output/future_emissions_vl_cf_ctap_cleaned.csv",
         "scenarios" : ["VL-CF", "VL-CF-CTAP"]
     },
     "WIEMIP":{
-        "em_file" : "../data/emissions/emissions_1750-2500_WIEMIP_v1.6.0_4.csv",
+        "em_file" : "../output/future_emissions_wiemip_cleaned.csv",
         "scenarios" : ["HL-CTAP", "ML-CTAP", "VL-CTAP"]
     }
 }
@@ -176,14 +176,17 @@ f.fill_species_configs(
     "../data/fair_parameters_1.6.0/species_configs_properties.csv",
 )
 
+f.override_defaults(
+    "../data/fair_parameters_1.6.0/calibrated_constrained_parameters.csv",
+)
+
 if run_w_variability:
     fill(f.climate_configs['stochastic_run'], True)
 else:
     fill(f.climate_configs['stochastic_run'], False)
 
-f.override_defaults(
-    "../data/fair_parameters_1.6.0/calibrated_constrained_parameters.csv",
-)
+print(f.climate_configs['stochastic_run'])
+
 
 # %%
 initialise(f.concentration, f.species_configs["baseline_concentration"])
